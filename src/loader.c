@@ -43,7 +43,7 @@ FILE *detect_shellcode(char *path) {
       return (NULL);
     magic_byte = (int *)strchr(buf, 0xF33L);
     if (*magic_byte == 0xF33L && *(magic_byte + 1) == 0x600D) {
-      fseek(file, -(offset - (buf - (char *)magic_byte)),  SEEK_END);
+      fseek(file, -(offset + (buf - (char *)magic_byte)),  SEEK_END);
       return (file);
     }
     offset += BLKSIZE;
@@ -83,8 +83,6 @@ int main(int argc, char *argv[]) {
   if (argc != 2)
     return (1);
   shellcode_chunks = find_shellcode_chunks(argv[1]);
-  if (shellcode_chunks)
-    printf("Hello\n");
   while (shellcode_chunks != NULL) {
     printf("%s\n", ((t_shellcode*)shellcode_chunks->data)->buf);
     shellcode_chunks = shellcode_chunks->next;
