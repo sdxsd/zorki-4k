@@ -65,7 +65,7 @@ t_list *find_shellcode_chunks(char *root_path) {
   if (!root_path)
     return (NULL);
   files = find_files(root_path);
-  if (!files)
+  if (!files || !files->data)
     return (NULL);
   list_ptr = files;
   while (list_ptr) {
