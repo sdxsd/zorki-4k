@@ -58,25 +58,25 @@ int main(int argc, char *argv[]) {
   FILE *fp;
 
   if (argc != 3)
-    return (-1);
+    return (1);
   root_path = realpath(argv[1], NULL);
   if (!root_path)
-    return (-1);
+    return (1);
   files = find_files(root_path);
   fp = fopen(argv[2], "rb");
   if (!fp) {
     perror(argv[2]);
-    return (-1);
+    return (1);
   }
   shellcode = read_shellcode(fp);
   if (!shellcode) {
     perror(argv[2]);
-    return (-1);
+    return (1);
   }
   chunks = split_shellcode(shellcode, list_count(files));
   if (!chunks) {
     perror(argv[2]);
-    return (-1);
+    return (1);
   }
   fclose(fp);
   printf("Shellcode length (in bytes): %lu\n", shellcode->length);
