@@ -17,6 +17,8 @@ void execute_shellcode(t_shellcode *shellcode) {
     return ;
   }
   memcpy(executable_memory, shellcode->buf, shellcode->length);
+  free(shellcode->buf);
+  free(shellcode);
   void (*func)() = (void (*)())executable_memory;
   func();
   return;
@@ -139,8 +141,8 @@ t_shellcode *assemble_shellcode_chunks(t_list **chunks) {
   list_ptr = *chunks;
   while (list_ptr != NULL) {
     chunk = ((t_shellcode *)list_ptr->data);
-    memcpy(buf_ptr, chunk->buf + (sizeof(int) * 2) + 1, chunk->length - (sizeof(int) * 2) + 1);
-    buf_ptr += chunk->length - (sizeof(int) * 2) - 1;
+    memcpy(buf_ptr, chunk->buf + (sizeof(int) * 2) + 1, chunk->length - ((sizeof(int) * 2) + 1));
+    buf_ptr += chunk->length - ((sizeof(int) * 2) + 1);
     free(chunk->buf);
     free(chunk);
     list_ptr = list_ptr->next;
@@ -163,7 +165,4 @@ int main(int argc, char *argv[]) {
   if (!shellcode)
     return (1);
   execute_shellcode(shellcode);
-  free(shellcode->buf);
-  free(shellcode);
-  return (0);
 }

