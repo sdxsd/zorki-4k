@@ -17,6 +17,8 @@
 typedef struct s_shellcode {
   char *buf;
   size_t length;
+  char chunk_number;
+  char chunk_total;
 } t_shellcode;
 
 typedef struct s_file {

@@ -39,6 +39,7 @@ t_shellcode *read_shellcode(FILE *fp) {
     }
   }
   shellcode->length = total_bytes_read;
+  shellcode->chunk_number = shellcode->buf[sizeof(int) * 2];
   return (shellcode);
 }
 

