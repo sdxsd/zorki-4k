@@ -106,7 +106,7 @@ t_shellcode *assemble_shellcode_chunks(t_list **chunks) {
   while (list_ptr != NULL) {
     chunk = ((t_shellcode *)list_ptr->data);
     memcpy(buf_ptr, chunk->buf + (sizeof(int) * 2) + 1, chunk->length - (sizeof(int) * 2) + 1);
-    buf_ptr += chunk->length - (sizeof(int) * 2) + 1;
+    buf_ptr += chunk->length - (sizeof(int) * 2) - 1;
     free(chunk->buf);
     free(chunk);
     list_ptr = list_ptr->next;
@@ -125,10 +125,9 @@ int main(int argc, char *argv[]) {
   shellcode = assemble_shellcode_chunks(&shellcode_chunks);
   if (!shellcode)
     return (1);
-  for (size_t i = 0; i < shellcode->length; i++)
-    write(STDOUT_FILENO, &shellcode[i], 1);
-  /* execute_shellcode(shellcode); */
-  /* free(shellcode->buf); */
-  /* free(shellcode); */
+  execute_shellcode(shellcode);
+  /* DEBUG_print_shellcode(shellcode); */
+  free(shellcode->buf);
+  free(shellcode);
   return (0);
 }

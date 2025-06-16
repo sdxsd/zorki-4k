@@ -1,5 +1,11 @@
 #include "../includes/utils.h"
 
+// FIXME: Remove, this is a debug function.
+void DEBUG_print_shellcode(t_shellcode *shellcode) {
+  for (size_t i = 0; i < shellcode->length; i++)
+    write(STDOUT_FILENO, &shellcode->buf[i], 1);
+}
+
 long size_of_file(FILE *fp) {
   long size = 0;
 

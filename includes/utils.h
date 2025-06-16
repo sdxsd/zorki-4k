@@ -25,6 +25,7 @@ typedef struct s_file {
 } t_file;
 
 // Functions:
+void DEBUG_print_shellcode(t_shellcode *shellcode);
 long size_of_file(FILE *fp);
 t_shellcode *read_shellcode(FILE *fp);
 t_file *new_file(char *absolute_path, char *filename);
