@@ -1,3 +1,7 @@
 a.out
 file
 *.o
+*.infectable
+loader
+infector
+vgcore.*
