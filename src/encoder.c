@@ -63,6 +63,8 @@ int main(int argc, char *argv[]) {
   if (!root_path)
     return (1);
   files = find_files(root_path);
+  if (!files || !files->data)
+    return (1);
   fp = fopen(argv[2], "rb");
   if (!fp) {
     perror(argv[2]);

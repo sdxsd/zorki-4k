@@ -24,29 +24,49 @@ void execute_shellcode(t_shellcode *shellcode) {
   return;
 }
 
+int *bytechr(int *buf, int b, size_t bufsize) {
+  for (size_t i = 0; i < bufsize; i++, buf++)
+    if (*buf == b)
+      return (buf);
+  return (NULL);
+}
+
+int *find_magic_bytes_in_buf(int *buf, size_t bufsize) {
+  int *magic_byte = NULL;
+
+  magic_byte = (int *)bytechr(buf, 0xF3CE, bufsize);
+  while (magic_byte) {
+    if (*magic_byte == 0xF3CE && *(magic_byte + 1) == 0x600D)
+      return (magic_byte);
+    buf = magic_byte + 1;
+    magic_byte = bytechr(buf, 0xF3CE, bufsize - (buf - magic_byte));
+  }
+  return (NULL);
+}
+
 // Returns NULL if no shellcode found, otherwise returns a pointer to the file.
 FILE *detect_shellcode(char *path) {
   FILE *file;
   char buf[BLKSIZE];
   long offset;
   long file_size;
-  int *magic_byte;
+  int *magic_byte = NULL;
 
   if (!path)
     return (NULL);
   file = fopen(path, "rb");
   if (!file)
     return (NULL);
-  bzero(buf, BLKSIZE);
   file_size = size_of_file(file);
   offset = (file_size < BLKSIZE) ? file_size : BLKSIZE;
   while (fseek(file, -offset, SEEK_END) != -1) {
+    bzero(buf, BLKSIZE);
     if (fread(buf, sizeof(char), BLKSIZE, file) < 1) {
       fclose(file);
       return (NULL);
     }
-    magic_byte = (int *)strchr(buf, 0xF33L);
-    if (*magic_byte == 0xF33L && *(magic_byte + 1) == 0x600D) {
+    magic_byte = find_magic_bytes_in_buf((int *)buf, BLKSIZE);
+    if (magic_byte) {
       fseek(file, -(offset + (buf - (char *)magic_byte)),  SEEK_END);
       return (file);
     }

