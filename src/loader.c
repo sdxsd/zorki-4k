@@ -24,47 +24,32 @@ void execute_shellcode(t_shellcode *shellcode) {
 
 // Returns NULL if no shellcode found, otherwise returns a pointer to the file.
 FILE *detect_shellcode(char *path) {
-  int found = false; // bool
   FILE *file;
-  char *buf;
-  long offset = BLKSIZE;
+  char buf[BLKSIZE];
+  long offset;
   long file_size;
-  int *magic_byte = NULL;
+  int *magic_byte;
 
   if (!path)
     return (NULL);
   file = fopen(path, "rb");
   if (!file)
     return (NULL);
-  buf = calloc(BLKSIZE, sizeof(char));
-  if (!buf)
-    return (NULL);
+  bzero(buf, BLKSIZE);
   file_size = size_of_file(file);
   offset = (file_size < BLKSIZE) ? file_size : BLKSIZE;
   while (fseek(file, -offset, SEEK_END) != -1) {
-    if (fread(buf, sizeof(char), BLKSIZE, file) != BLKSIZE) {
-      free(buf);
+    if (fread(buf, sizeof(char), BLKSIZE, file) < 1)
       return (NULL);
-    }
-    for (int i = 0; i < BLKSIZE; i++) {
-      magic_byte = (int *)&buf[i];
-      if (*magic_byte == 0xF33L)
-        i = BLKSIZE;
-    }
+    magic_byte = (int *)strchr(buf, 0xF33L);
     if (*magic_byte == 0xF33L && *(magic_byte + 1) == 0x600D) {
-      found = true;
       fseek(file, -(offset - (buf - (char *)magic_byte)),  SEEK_END);
-      break;
+      return (file);
     }
     offset += BLKSIZE;
   }
-  perror(path);
-  free(buf);
-  if (!found) {
-    fclose(file);
-    return (NULL);
-  }
-  return (file);
+  fclose(file);
+  return (NULL);
 }
 
 t_list *find_shellcode_chunks(char *root_path) {
