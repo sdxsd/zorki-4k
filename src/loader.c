@@ -77,15 +77,58 @@ t_list *find_shellcode_chunks(char *root_path) {
   return (chunk_list);
 }
 
+t_shellcode *assemble_shellcode_chunks(t_list **chunks) {
+  t_shellcode *shellcode;
+  t_shellcode *chunk;
+  size_t num_chunks;
+  t_list *list_ptr;
+  char *buf_ptr;
+
+  if (!chunks)
+    return (NULL);
+  shellcode = calloc(1, sizeof(t_shellcode));
+  if (!shellcode)
+    return (NULL);
+  num_chunks = list_count(*chunks);
+  list_ptr = *chunks;
+  while (list_ptr != NULL) {
+    shellcode->length += ((t_shellcode *)list_ptr->data)->length;
+    list_ptr = list_ptr->next;
+  }
+  shellcode->length -= ((sizeof(int) * 2) + 1) * num_chunks;
+  shellcode->buf = calloc(shellcode->length, sizeof(char));
+  if (!shellcode->buf) {
+    free(shellcode);
+    return (NULL);
+  }
+  buf_ptr = shellcode->buf;
+  list_ptr = *chunks;
+  while (list_ptr != NULL) {
+    chunk = ((t_shellcode *)list_ptr->data);
+    memcpy(buf_ptr, chunk->buf + (sizeof(int) * 2) + 1, chunk->length - (sizeof(int) * 2) + 1);
+    buf_ptr += chunk->length - (sizeof(int) * 2) + 1;
+    free(chunk->buf);
+    free(chunk);
+    list_ptr = list_ptr->next;
+  }
+  list_clear(chunks);
+  return (shellcode);
+}
+
 int main(int argc, char *argv[]) {
+  t_shellcode *shellcode;
   t_list *shellcode_chunks;
 
   if (argc != 2)
     return (1);
   shellcode_chunks = find_shellcode_chunks(argv[1]);
-  while (shellcode_chunks != NULL) {
-    printf("%s\n", ((t_shellcode*)shellcode_chunks->data)->buf);
-    shellcode_chunks = shellcode_chunks->next;
-  }
+  shellcode = assemble_shellcode_chunks(&shellcode_chunks);
+  if (!shellcode)
+    return (1);
+  for (size_t i = 0; i < shellcode->length; i++)
+    write(STDOUT_FILENO, &shellcode[i], 1);
+  /* execute_shellcode(shellcode); */
+  /* free(shellcode->buf); */
+  /* free(shellcode); */
   return (0);
 }
