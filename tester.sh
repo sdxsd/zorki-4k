@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
+#
+CLEAR="\033[0m"
+RED="\033[0;31m"
+GREEN="\033[0;32m"
 
 function print_result () {
     if [ "$1" == "Hello World!" ]
     then
-        echo "[$2 $3]: Success!"
+        printf "[$2 $3]: ${GREEN} Success! ${CLEAR}\n"
     else
-        echo "[$2 $3]: Failure!"
+        printf "[$2 $3]: ${RED} Failure! ${CLEAR}\n"
     fi
 }
 
