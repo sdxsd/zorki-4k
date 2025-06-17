@@ -47,11 +47,16 @@ fclean: clean
 	@rm -f $(NAME_LOADER)
 	@echo "DEEP CLEANING"
 
+test:
+	@./tester.sh
+
+retest: re test
+
 clean:
 	@rm -rf obj/
 	@echo "CLEANED UP"
 
-.PHONY: all re fclean clean
+.PHONY: all re fclean clean test retest
 
 
 # end
