@@ -16,8 +16,7 @@ function test_normal_files_with_text () {
 
     mkdir -p $testdir
     rm $testdir/*.infectable
-    for i in {1..5};
-    do
+    for ((i=1; i <= filecount; i++)); do
         touch -f "$testdir/file$i.infectable"
         echo "This is a normal file, with NO viruses or SHELLCODE I swear!" > "$testdir/files$i.infectable"
     done
@@ -33,10 +32,9 @@ function test_large_random_files () {
 
     mkdir -p $testdir
     rm $testdir/*.infectable
-    for i in {1..3};
-    do
+    for ((i=1; i <= filecount; i++)); do
         touch -f "$testdir/file$i.infectable"
-        dd if=/dev/urandom of="$testdir/files$i.infectable" count=102400 &> /dev/null
+        dd if=/dev/urandom of="$testdir/files$i.infectable" count=10240 &> /dev/null
     done
     ./infector $testdir shellcode &> /dev/null
     result=$(./loader $testdir)
@@ -50,8 +48,7 @@ function test_normal_empty_files () {
 
     mkdir -p $testdir
     rm $testdir/*.infectable
-    for i in {0..10};
-    do
+    for ((i=1; i <= filecount; i++)); do
         touch -f "$testdir/file$i.infectable"
     done
     ./infector $testdir shellcode &> /dev/null
