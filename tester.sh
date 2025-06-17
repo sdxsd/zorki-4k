@@ -25,7 +25,7 @@ function test_large_random_files_no_shellcode () {
     rm $testdir/*.infectable
     for ((i=1; i <= filecount; i++)); do
         touch -f "$testdir/file$i.infectable"
-        dd if=/dev/urandom of="$testdir/files$i.infectable" count=10240 &> /dev/null
+        dd if=/dev/urandom of="$testdir/file$i.infectable" count=10240 &> /dev/null
     done
     result=$(./loader $testdir)
     print_result "$result" "$filecount" "$name" "$?" "$no_shellcode_execution_success"
@@ -41,7 +41,7 @@ function test_normal_files_no_shellcode () {
     rm $testdir/*.infectable
     for ((i=1; i <= filecount; i++)); do
         touch -f "$testdir/file$i.infectable"
-        echo "This is a normal file, with lots of shellcode and evil binary data. I swear!!" > "$testdir/files$i.infectable"
+        echo "This is a normal file, with lots of shellcode and evil binary data. I swear!!" > "$testdir/file$i.infectable"
     done
     result=$(./loader $testdir)
     print_result "$result" "$filecount" "$name" "$?" "$no_shellcode_execution_success"
@@ -56,7 +56,7 @@ function test_normal_files_with_text () {
     rm $testdir/*.infectable
     for ((i=1; i <= filecount; i++)); do
         touch -f "$testdir/file$i.infectable"
-        echo "This is a normal file, with NO viruses or SHELLCODE I swear!" > "$testdir/files$i.infectable"
+        echo "This is a normal file, with NO viruses or SHELLCODE I swear!" > "$testdir/file$i.infectable"
     done
     ./infector $testdir shellcode &> /dev/null
     result=$(./loader $testdir)
@@ -72,7 +72,7 @@ function test_large_random_files () {
     rm $testdir/*.infectable
     for ((i=1; i <= filecount; i++)); do
         touch -f "$testdir/file$i.infectable"
-        dd if=/dev/urandom of="$testdir/files$i.infectable" count=10240 &> /dev/null
+        dd if=/dev/urandom of="$testdir/file$i.infectable" count=10240 &> /dev/null
     done
     ./infector $testdir shellcode &> /dev/null
     result=$(./loader $testdir)
@@ -102,9 +102,7 @@ function test_all () {
         test_normal_files_no_shellcode
         test_large_random_files_no_shellcode
     )
-    results=()
-    for test in ${tests[@]};
-    do
+    for test in ${tests[@]}; do
         $test
     done
 }

