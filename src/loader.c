@@ -36,6 +36,7 @@ int *find_magic_bytes_in_buf(int *buf, size_t bufsize) {
 
   magic_byte = (int *)bytechr(buf, 0xF3CE, bufsize);
   while (magic_byte) {
+    printf("%x\n", *magic_byte);
     if (*magic_byte == 0xF3CE && *(magic_byte + 1) == 0x600D)
       return (magic_byte);
     buf = magic_byte + 1;
