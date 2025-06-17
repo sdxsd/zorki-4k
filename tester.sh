@@ -5,11 +5,12 @@ RED="\033[0;31m"
 GREEN="\033[0;32m"
 
 function print_result () {
-    if [ "$1" == "Hello World!" ]
-    then
+    if [ "$1" == "Hello World!" ]; then
         printf "[$2 $3]: ${GREEN} Success! ${CLEAR}\n"
+    elif [ $4 -eq 139 ]; then # Segfault code.
+        printf "[$2 $3]: ${RED} Failure! (Segfault) ${CLEAR}\n"
     else
-        printf "[$2 $3]: ${RED} Failure! ${CLEAR}\n"
+        printf "[$2 $3]: ${RED} Failure! $4 ${CLEAR}\n"
     fi
 }
 
@@ -26,7 +27,7 @@ function test_normal_files_with_text () {
     done
     ./infector $testdir shellcode &> /dev/null
     result=$(./loader $testdir)
-    print_result "$result" "$filecount" "$name"
+    print_result "$result" "$filecount" "$name" "$?"
 }
 
 function test_large_random_files () {
@@ -42,7 +43,7 @@ function test_large_random_files () {
     done
     ./infector $testdir shellcode &> /dev/null
     result=$(./loader $testdir)
-    print_result "$result" "$filecount" "$name"
+    print_result "$result" "$filecount" "$name" "$?"
 }
 
 function test_normal_empty_files () {
@@ -57,7 +58,7 @@ function test_normal_empty_files () {
     done
     ./infector $testdir shellcode &> /dev/null
     result=$(./loader $testdir)
-    print_result "$result" "$filecount" "$name"
+    print_result "$result" "$filecount" "$name" "$?"
 }
 
 function test_all () {
